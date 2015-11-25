@@ -8,7 +8,7 @@ from config import config
 
 import chainer
 import chainer.functions as F
-from chainer.functions import caffe
+from chainer.functions.caffe import CaffeFunction
 
 __author__ = 'kazuto1011'
 
@@ -20,14 +20,14 @@ class CNNClassifier:
         rp.loginfo("Initialization")
         cv2.namedWindow("rgb", cv2.CV_WINDOW_AUTOSIZE)
 
-        self.bridge = CvBridge()
-        self.rgb_subscriber = rp.Subscriber(TOPIC_NAME, CompressedImage, self.classify, queue_size=1)
-
         # initialize a classifier
-        self.caffe_net = caffe.CaffeFunction(config.path.caffe.caffemodel)
+        self.caffe_net = CaffeFunction(config.path.caffe.caffemodel)
 
         # load synset_words
         self.categories = np.loadtxt(config.path.caffe.synset_words, str, delimiter="\t")
+
+        self.bridge = CvBridge()
+        self.rgb_subscriber = rp.Subscriber(TOPIC_NAME, CompressedImage, self.classify, queue_size=1)
 
     def predict(self, x):
         y, = self.caffe_net(inputs={'data': x}, outputs=['fc8'], train=False)

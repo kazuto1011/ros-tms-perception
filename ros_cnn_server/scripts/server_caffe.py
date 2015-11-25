@@ -18,9 +18,6 @@ class CNNClassifier:
         rp.loginfo("Initialization")
         cv2.namedWindow("rgb", cv2.CV_WINDOW_AUTOSIZE)
 
-        self.bridge = CvBridge()
-        self.rgb_subscriber = rp.Subscriber(TOPIC_NAME, CompressedImage, self.classify, queue_size=1)
-
         # initialize a classifier
         caffe.set_device(config.gpuNum)
         caffe.set_mode_gpu()
@@ -28,6 +25,9 @@ class CNNClassifier:
 
         # load synset_words
         self.categories = np.loadtxt(config.path.caffe.synset_words, str, delimiter="\t")
+
+        self.bridge = CvBridge()
+        self.rgb_subscriber = rp.Subscriber(TOPIC_NAME, CompressedImage, self.classify, queue_size=1)
 
     def classify(self, image):
         # convert CompressedImage to numpy array
