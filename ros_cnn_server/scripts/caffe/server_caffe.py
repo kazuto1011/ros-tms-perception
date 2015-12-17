@@ -4,7 +4,7 @@ import cv2
 import time
 from sensor_msgs.msg import CompressedImage
 from cv_bridge import CvBridge, CvBridgeError
-from config import config
+from _init_paths import cfg
 
 import caffe
 
@@ -19,12 +19,12 @@ class CNNClassifier:
         cv2.namedWindow("rgb", cv2.CV_WINDOW_AUTOSIZE)
 
         # initialize a classifier
-        caffe.set_device(config.gpuNum)
+        caffe.set_device(cfg.gpuNum)
         caffe.set_mode_gpu()
-        self.classifier = caffe.Classifier(config.path.caffe.prototxt, config.path.caffe.caffemodel)
+        self.classifier = caffe.Classifier(cfg.path.caffe.prototxt, cfg.path.caffe.caffemodel)
 
         # load synset_words
-        self.categories = np.loadtxt(config.path.caffe.synset_words, str, delimiter="\t")
+        self.categories = np.loadtxt(cfg.path.caffe.synset_words, str, delimiter="\t")
 
         self.bridge = CvBridge()
         self.rgb_subscriber = rp.Subscriber(TOPIC_NAME, CompressedImage, self.classify, queue_size=1)
