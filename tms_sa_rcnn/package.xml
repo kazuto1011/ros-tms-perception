@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 <package>
-  <name>ros_cnn_server</name>
+  <name>tms_sa_rcnn</name>
   <version>0.0.0</version>
-  <description>The ros_cnn_server package</description>
+  <description>The tms_sa_rcnn package</description>
 
   <maintainer email="k_nakashima@irvs.ait.kyushu-u.ac.jp">kazuto1011</maintainer>
   <license>TODO</license>

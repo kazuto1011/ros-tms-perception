@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 2.8.3)
-project(ros_cnn_server)
+project(tms_sa_rcnn)
 
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
@@ -83,7 +83,7 @@ find_package(catkin REQUIRED COMPONENTS
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
 #  INCLUDE_DIRS include
-#  LIBRARIES ros_cnn_server
+#  LIBRARIES tms_sa_rcnn
 #  CATKIN_DEPENDS roscpp rospy std_msgs
 #  DEPENDS system_lib
 )
@@ -100,19 +100,19 @@ include_directories(
 )
 
 ## Declare a cpp library
-# add_library(ros_cnn_server
-#   src/${PROJECT_NAME}/ros_cnn_server.cpp
+# add_library(tms_sa_rcnn
+#   src/${PROJECT_NAME}/tms_sa_rcnn.cpp
 # )
 
 ## Declare a cpp executable
-# add_executable(ros_cnn_server_node src/ros_cnn_server_node.cpp)
+# add_executable(tms_sa_rcnn_node src/tms_sa_rcnn_node.cpp)
 
 ## Add cmake target dependencies of the executable/library
 ## as an example, message headers may need to be generated before nodes
-# add_dependencies(ros_cnn_server_node ros_cnn_server_generate_messages_cpp)
+# add_dependencies(tms_sa_rcnn_node tms_sa_rcnn_generate_messages_cpp)
 
 ## Specify libraries to link a library or executable target against
-# target_link_libraries(ros_cnn_server_node
+# target_link_libraries(tms_sa_rcnn_node
 #   ${catkin_LIBRARIES}
 # )
 
@@ -131,7 +131,7 @@ include_directories(
 # )
 
 ## Mark executables and/or libraries for installation
-# install(TARGETS ros_cnn_server ros_cnn_server_node
+# install(TARGETS tms_sa_rcnn tms_sa_rcnn_node
 #   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
 #   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
 #   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
@@ -156,7 +156,7 @@ include_directories(
 #############
 
 ## Add gtest based cpp test target and link libraries
-# catkin_add_gtest(${PROJECT_NAME}-test test/test_ros_cnn_server.cpp)
+# catkin_add_gtest(${PROJECT_NAME}-test test/test_tms_sa_rcnn.cpp)
 # if(TARGET ${PROJECT_NAME}-test)
 #   target_link_libraries(${PROJECT_NAME}-test ${PROJECT_NAME})
 # endif()
