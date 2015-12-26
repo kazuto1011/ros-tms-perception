@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 <package>
-  <name>tms_sa_rcnn</name>
+  <name>tms_ss_rcnn</name>
   <version>0.0.0</version>
-  <description>The tms_sa_rcnn package</description>
+  <description>The tms_ss_rcnn package</description>
 
   <maintainer email="k_nakashima@irvs.ait.kyushu-u.ac.jp">kazuto1011</maintainer>
   <license>TODO</license>

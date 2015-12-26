@@ -47,7 +47,7 @@ class CNNClassifier:
 
 class NodeMain:
     def __init__(self):
-        rp.init_node('tms_sa_rcnn', anonymous=False)
+        rp.init_node('server_caffe', anonymous=False)
         rp.on_shutdown(self.shutdown)
 
         CNNClassifier()
