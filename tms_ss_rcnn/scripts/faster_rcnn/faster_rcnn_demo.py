@@ -1,10 +1,5 @@
 #!/usr/bin/env python
-import numpy as np
-import sys, os, cv2, time
-import cv_bridge
-import rospy as rp
-from sensor_msgs.msg import CompressedImage
-from sensor_msgs.msg import Image
+import sys, os
 
 if 'FRCN_ROOT' not in os.environ:
     print "Could not find 'FRCN_ROOT'."
@@ -23,8 +18,12 @@ from utils.timer import Timer
 import matplotlib.pyplot as plt
 import numpy as np
 import scipy.io as sio
-import caffe, os, sys, cv2
+import caffe, cv2
 import argparse
+import cv_bridge
+import rospy as rp
+from sensor_msgs.msg import CompressedImage
+from sensor_msgs.msg import Image
 
 CLASSES = ('__background__',
            'aeroplane', 'bicycle', 'bird', 'boat',

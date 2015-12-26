@@ -1,10 +1,5 @@
 #!/usr/bin/env python
-import numpy as np
-import sys, os, cv2, time
-import cv_bridge
-import rospy as rp
-from sensor_msgs.msg import CompressedImage
-from sensor_msgs.msg import Image
+import sys, os
 
 if 'FRCN_ROOT' not in os.environ:
     print "Could not find 'FRCN_ROOT'."
@@ -23,8 +18,13 @@ from utils.timer import Timer
 import matplotlib.pyplot as plt
 import numpy as np
 import scipy.io as sio
-import caffe, os, sys, cv2
+import caffe, cv2
 import argparse
+import cv_bridge
+import rospy as rp
+from sensor_msgs.msg import CompressedImage
+from sensor_msgs.msg import RegionOfInterest
+import tms_ss_rcnn.srv
 
 CLASSES = ('__background__',
            'aeroplane', 'bicycle', 'bird', 'boat',
@@ -33,10 +33,19 @@ CLASSES = ('__background__',
            'motorbike', 'person', 'pottedplant',
            'sheep', 'sofa', 'train', 'tvmonitor')
 
-NETS = {'vgg16': ('VGG16',
-                  'VGG16_faster_rcnn_final.caffemodel'),
-        'zf': ('ZF',
-                  'ZF_faster_rcnn_final.caffemodel')}
+NETS = {'vgg16': ('VGG16', 'VGG16_faster_rcnn_final.caffemodel'),
+        'zf': ('ZF', 'ZF_faster_rcnn_final.caffemodel')}
+
+def parse_args():
+    parser = argparse.ArgumentParser(description='Faster R-CNN demo')
+    parser.add_argument('--gpu', dest='gpu_id', help='GPU device id to use [0]',
+                        default=0, type=int)
+    parser.add_argument('--cpu', dest='cpu_mode',
+                        help='Use CPU mode (overrides --gpu)',
+                        action='store_true')
+    parser.add_argument('--net', dest='demo_net', help='Network to use [vgg16]',
+                        choices=NETS.keys(), default='vgg16')
+    return parser.parse_args()
 
 def vis_detections(im, class_name, dets, thresh=0.5):
     inds = np.where(dets[:, -1] >= thresh)[0]
@@ -61,39 +70,12 @@ def vis_detections(im, class_name, dets, thresh=0.5):
                 bbox=dict(facecolor='blue', alpha=0.5),
                 fontsize=14, color='white')
 
-    ax.set_title(('{} detections with '
-                  'p({} | box) >= {:.1f}').format(class_name, class_name,
-                                                  thresh),
-                  fontsize=14)
-    plt.axis('off')
-    plt.tight_layout()
-    plt.draw()
-
-def parse_args():
-    parser = argparse.ArgumentParser(description='Faster R-CNN demo')
-    parser.add_argument('--gpu', dest='gpu_id', help='GPU device id to use [0]',
-                        default=0, type=int)
-    parser.add_argument('--cpu', dest='cpu_mode',
-                        help='Use CPU mode (overrides --gpu)',
-                        action='store_true')
-    parser.add_argument('--net', dest='demo_net', help='Network to use [vgg16]',
-                        choices=NETS.keys(), default='vgg16')
-
-    args = parser.parse_args()
-
-    return args
-
 def load_net():
     cfg.TEST.HAS_RPN = True  # Use RPN for proposals
-
     args = parse_args()
 
     prototxt = os.path.join(cfg.ROOT_DIR, 'models', NETS[args.demo_net][0], 'faster_rcnn_alt_opt', 'faster_rcnn_test.pt')
     caffemodel = os.path.join(cfg.ROOT_DIR, 'data', 'faster_rcnn_models', NETS[args.demo_net][1])
-
-    if not os.path.isfile(caffemodel):
-        raise IOError(('{:s} not found.\nDid you run ./data/script/'
-                       'fetch_faster_rcnn_models.sh?').format(caffemodel))
 
     if args.cpu_mode:
         caffe.set_mode_cpu()
@@ -102,18 +84,23 @@ def load_net():
         caffe.set_device(args.gpu_id)
         cfg.GPU_ID = args.gpu_id
 
-    print '\n\nLoading network... {:s}'.format(caffemodel)
     return caffe.Net(prototxt, caffemodel, caffe.TEST)
 
 class FasterRCNN():
-    def __init__(self, net):
-        self.net = net
+    def __init__(self, name, net):
+        self._net = net
+        self._name = name
+        self._warmup()
 
-    def _detect(self, net, image_name):
-        # Load the demo image
-        im_file = os.path.join(cfg.ROOT_DIR, 'data', 'demo', image_name)
-        im = cv2.imread(im_file)
+        rp.loginfo("Ready to start")
+        self._server = rp.Service(self._name, tms_ss_rcnn.srv.obj_detection, self._run)
 
+    def _warmup(self):
+        im = 128 * np.ones((300, 500, 3), dtype=np.uint8)
+        for i in xrange(2):
+            _, _= im_detect(self._net, im)
+
+    def _detect(self, net, im):
         # Detect all object classes and regress object bounds
         timer = Timer()
         timer.tic()
@@ -135,28 +122,22 @@ class FasterRCNN():
             dets = dets[keep, :]
             vis_detections(im, cls, dets, thresh=CONF_THRESH)
 
-    def run(self):
-        # Warmup on a dummy image
-        im = 128 * np.ones((300, 500, 3), dtype=np.uint8)
-        for i in xrange(2):
-            _, _= im_detect(self.net, im)
+    def _run(self, req):
+        rp.loginfo("Received image")
+        np_arr = np.fromstring(req.image.data, np.uint8)
+        image = cv2.imdecode(np_arr, cv2.CV_LOAD_IMAGE_COLOR)
 
-        im_names = ['000456.jpg', '000542.jpg', '001150.jpg',
-                    '001763.jpg', '004545.jpg']
+        self._detect(self._net, image)
 
-        for im_name in im_names:
-            print '~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~'
-            print 'Demo for data/demo/{}'.format(im_name)
-            self._detect(self.net, im_name)
-
-        plt.show()
+        res = RegionOfInterest()
+        return tms_ss_rcnn.srv.obj_detectionResponse(res)
 
 class NodeMain:
     def __init__(self):
         rp.init_node('faster_rcnn', anonymous=False)
         rp.on_shutdown(self.shutdown)
-        node = FasterRCNN(load_net())
-        node.run()
+
+        node = FasterRCNN('faster_rcnn', load_net())
         rp.spin()
 
     @staticmethod
