@@ -1,13 +1,19 @@
 #!/usr/bin/env python
 import sys
-
 import cv2
 import matplotlib.pyplot as plt
 import numpy as np
 import rospy as rp
+import argparse
 import tms_ss_rcnn.srv
 from sensor_msgs.msg import CompressedImage
 
+def parse_args():
+    parser = argparse.ArgumentParser(description='Faster R-CNN demo client')
+    parser.add_argument('--image', dest='image',
+                        help='Image to detect',
+                        default='/home/kazuto/Desktop/test.png')
+    return parser.parse_args()
 
 class RCNNClient:
     def __init__(self):
@@ -15,7 +21,7 @@ class RCNNClient:
         try:
             self._client = rp.ServiceProxy('faster_rcnn', tms_ss_rcnn.srv.obj_detection)
 
-            img = cv2.imread('/home/kazuto/internship2015/MotionSegRecData/test/701_StillsRaw_full/0016E5_07999.png', cv2.IMREAD_COLOR)
+            img = cv2.imread(parse_args().image, cv2.IMREAD_COLOR)
             req = self._convert2msg(img)
             res = self._client(req)
             self._visualize(img, res)
@@ -55,7 +61,7 @@ class RCNNClient:
 
 
 def main(args):
-    rp.init_node('faster_rcnn_client', anonymous=False)
+    rp.init_node('faster_rcnn_client', anonymous=True)
     ic = RCNNClient()
 
     try:

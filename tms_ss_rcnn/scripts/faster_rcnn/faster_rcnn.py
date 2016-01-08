@@ -36,12 +36,14 @@ NETS = {'vgg16': ('VGG16', 'VGG16_faster_rcnn_final.caffemodel'),
 
 def parse_args():
     parser = argparse.ArgumentParser(description='Faster R-CNN demo')
-    parser.add_argument('--gpu', dest='gpu_id', help='GPU device id to use [0]',
+    parser.add_argument('--gpu', dest='gpu_id',
+                        help='GPU device id to use [0]',
                         default=0, type=int)
     parser.add_argument('--cpu', dest='cpu_mode',
                         help='Use CPU mode (overrides --gpu)',
                         action='store_true')
-    parser.add_argument('--net', dest='demo_net', help='Network to use [vgg16]',
+    parser.add_argument('--net', dest='demo_net',
+                        help='Network to use [vgg16]',
                         choices=NETS.keys(), default='vgg16')
     return parser.parse_args()
 
@@ -78,6 +80,28 @@ class FasterRCNN:
         for i in xrange(2):
             _, _ = im_detect(self._net, image)
 
+    def _callback(self, req):
+        rp.loginfo("Received an image")
+
+        # convert rosmsg to cv image
+        np_array = np.fromstring(req.image.data, np.uint8)
+        image = cv2.imdecode(np_array, cv2.CV_LOAD_IMAGE_COLOR)
+
+        objects = self._detect(image)
+        return srv.obj_detectionResponse(objects)
+
+    def _detect(self, image):
+        # Detect all object classes and regress object bounds
+        timer = Timer()
+        timer.tic()
+        scores, boxes = im_detect(self._net, image)
+        timer.toc()
+
+        print ('Detection took {:.3f}s for '
+               '{:d} object proposals').format(timer.total_time, boxes.shape[0])
+
+        return self._post_process(scores, boxes, conf_thresh=0.8, nms_thresh=0.3)
+
     @staticmethod
     def _post_process(scores, boxes, conf_thresh, nms_thresh):
         obj_list = []
@@ -95,7 +119,6 @@ class FasterRCNN:
 
             for i in inds:
                 obj = msg.object()
-
                 obj.class_name = cls
                 obj.score      = dets[i, -1]
 
@@ -109,27 +132,6 @@ class FasterRCNN:
                 obj_list.append(obj)
 
         return obj_list
-
-    def _detect(self, net, image):
-        # Detect all object classes and regress object bounds
-        timer = Timer()
-        timer.tic()
-        scores, boxes = im_detect(net, image)
-        timer.toc()
-
-        print ('Detection took {:.3f}s for '
-               '{:d} object proposals').format(timer.total_time, boxes.shape[0])
-
-        return self._post_process(scores, boxes, conf_thresh=0.8, nms_thresh=0.3)
-
-    def _callback(self, req):
-        rp.loginfo("Received an image")
-
-        np_array = np.fromstring(req.image.data, np.uint8)
-        image = cv2.imdecode(np_array, cv2.CV_LOAD_IMAGE_COLOR)
-
-        objects = self._detect(self._net, image)
-        return srv.obj_detectionResponse(objects)
 
 
 class NodeMain:
