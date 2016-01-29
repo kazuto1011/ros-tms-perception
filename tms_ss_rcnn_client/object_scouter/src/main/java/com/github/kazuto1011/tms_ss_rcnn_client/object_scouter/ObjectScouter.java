@@ -18,6 +18,7 @@ import org.ros.node.NodeMainExecutor;
 public class ObjectScouter extends RosActivity
 {
     private final String TAG  = "Object Scouter";
+    private ObjectDetectionClient objectDetectionClient;
     private RosCameraPreviewView rosCameraPreviewView;
     private Handler handler;
     private Camera camera;
@@ -52,10 +53,12 @@ public class ObjectScouter extends RosActivity
     protected void init(NodeMainExecutor nodeMainExecutor) {
         camera = Camera.open(cameraId);
 
-//        Camera.Parameters params = camera.getParameters();
-//        params.setPictureSize(640 / 2, 480 / 2);
-//        params.setPreviewSize(640 / 2, 480 / 2);
-//        camera.setParameters(params);
+        /*
+        Camera.Parameters params = camera.getParameters();
+        params.setPictureSize(640 / 2, 480 / 2);
+        params.setPreviewSize(640 / 2, 480 / 2);
+        camera.setParameters(params);
+        */
 
         int fps[] = new int[2];
         camera.getParameters().getPreviewFpsRange(fps);
@@ -72,9 +75,12 @@ public class ObjectScouter extends RosActivity
 
         rosCameraPreviewView.setCamera(camera);
 
+        objectDetectionClient = new ObjectDetectionClient();
+
         NodeConfiguration nodeConfiguration = NodeConfiguration.newPublic(InetAddressFactory.newNonLoopback().getHostAddress());
         nodeConfiguration.setMasterUri(getMasterUri());
 
-        nodeMainExecutor.execute(rosCameraPreviewView, nodeConfiguration.setNodeName("wearable_android"));
+        nodeMainExecutor.execute(rosCameraPreviewView, nodeConfiguration.setNodeName("ObjectScouter/RosCameraPreviewView"));
+        nodeMainExecutor.execute(objectDetectionClient, nodeConfiguration);
     }
 }

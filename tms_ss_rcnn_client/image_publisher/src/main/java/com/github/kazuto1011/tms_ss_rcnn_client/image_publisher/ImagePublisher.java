@@ -74,6 +74,6 @@ public class ImagePublisher extends RosActivity
         NodeConfiguration nodeConfiguration = NodeConfiguration.newPublic(InetAddressFactory.newNonLoopback().getHostAddress());
         nodeConfiguration.setMasterUri(getMasterUri());
 
-        nodeMainExecutor.execute(rosCameraPreviewView, nodeConfiguration.setNodeName("wearable_android"));
+        nodeMainExecutor.execute(rosCameraPreviewView, nodeConfiguration.setNodeName("android_image_publisher"));
     }
 }
