@@ -1,9 +1,14 @@
 package com.github.kazuto1011.tms_ss_rcnn_client.object_scouter;
 
 import android.content.Context;
+import android.hardware.Camera;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
+import android.view.SubMenu;
 import android.widget.Toast;
 
 import org.opencv.android.BaseLoaderCallback;
@@ -18,13 +23,14 @@ import org.ros.node.NodeConfiguration;
 import org.ros.node.NodeMainExecutor;
 
 import java.io.IOException;
+import java.util.List;
+import java.util.ListIterator;
 
 import uk.co.chrisjenx.calligraphy.CalligraphyConfig;
 import uk.co.chrisjenx.calligraphy.CalligraphyContextWrapper;
 
-public class ObjectScouter extends RosActivity implements CameraBridgeViewBase.CvCameraViewListener2
-{
-    private final String TAG  = "Object Scouter";
+public class ObjectScouter extends RosActivity implements CameraBridgeViewBase.CvCameraViewListener2 {
+    private final String TAG = "ObjectScouter";
     private ObjectDetectionClient objectDetectionClient;
     private Handler handler;
     private Context context = this;
@@ -33,8 +39,11 @@ public class ObjectScouter extends RosActivity implements CameraBridgeViewBase.C
         super("Object Scouter", "Object Scouter");
     }
 
-    private CameraBridgeViewBase mCameraView;
+    private VariableJavaCameraView mCameraView;
     private Mat mOutputFrame;
+    private MenuItem[] mResolutionMenuItems;
+    private SubMenu mResolutionMenu;
+    private List<Camera.Size> mResolutionList;
 
     private BaseLoaderCallback mLoaderCallback = new BaseLoaderCallback(this) {
         @Override
@@ -51,8 +60,7 @@ public class ObjectScouter extends RosActivity implements CameraBridgeViewBase.C
     };
 
     @Override
-    public void onCreate(Bundle savedInstanceState)
-    {
+    public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
         //change the font
@@ -64,7 +72,7 @@ public class ObjectScouter extends RosActivity implements CameraBridgeViewBase.C
 
         setContentView(R.layout.main);
 
-        mCameraView = (CameraBridgeViewBase)findViewById(R.id.camera_view);
+        mCameraView = (VariableJavaCameraView) findViewById(R.id.camera_view);
 
         handler = new Handler() {
             @Override
@@ -74,7 +82,7 @@ public class ObjectScouter extends RosActivity implements CameraBridgeViewBase.C
             }
         };
 
-        objectDetectionClient = new ObjectDetectionClient();
+        objectDetectionClient = new ObjectDetectionClient(handler);
     }
 
     @Override
@@ -126,12 +134,49 @@ public class ObjectScouter extends RosActivity implements CameraBridgeViewBase.C
     }
 
     @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+
+        int idx;
+
+        mResolutionMenu = menu.addSubMenu("Resolution");
+        mResolutionList = mCameraView.getResolutionList();
+
+        mResolutionMenuItems = new MenuItem[mResolutionList.size()];
+
+        ListIterator<Camera.Size> resolutionItr = mResolutionList.listIterator();
+        idx = 0;
+        while (resolutionItr.hasNext()) {
+            Camera.Size element = resolutionItr.next();
+            mResolutionMenuItems[idx] = mResolutionMenu.add(2, idx, Menu.NONE,
+                    Integer.valueOf(element.width).toString() + "x" + Integer.valueOf(element.height).toString());
+            idx++;
+        }
+
+        return true;
+    }
+
+    public boolean onOptionsItemSelected(MenuItem item) {
+        Log.i(TAG, "called onOptionsItemSelected; selected item: " + item);
+        if (true) {
+            int id = item.getItemId();
+            Camera.Size resolution = mResolutionList.get(id);
+            mCameraView.setResolution(resolution);
+            resolution = mCameraView.getResolution();
+            String caption = Integer.valueOf(resolution.width).toString() + "x" + Integer.valueOf(resolution.height).toString();
+            Toast.makeText(this, caption, Toast.LENGTH_SHORT).show();
+        }
+
+        return true;
+    }
+
+    @Override
     protected void init(NodeMainExecutor nodeMainExecutor) {
         NodeConfiguration nodeConfiguration = NodeConfiguration.newPublic(InetAddressFactory.newNonLoopback().getHostAddress());
         nodeConfiguration.setMasterUri(getMasterUri());
 
         nodeMainExecutor.execute(objectDetectionClient, nodeConfiguration);
 
+        //if found faster_rcnn service
         mCameraView.setCvCameraViewListener(this);
     }
 }

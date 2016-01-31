@@ -1,8 +1,6 @@
 package com.github.kazuto1011.tms_ss_rcnn_client.object_scouter;
 
-import android.graphics.Rect;
-import android.graphics.YuvImage;
-import android.hardware.Camera;
+import android.os.Handler;
 import android.util.Log;
 
 import org.jboss.netty.buffer.ChannelBufferOutputStream;
@@ -28,23 +26,19 @@ import tms_ss_rcnn.obj_detectionRequest;
 import tms_ss_rcnn.obj_detectionResponse;
 
 
-public class ObjectDetectionClient extends AbstractNodeMain{
+public class ObjectDetectionClient extends AbstractNodeMain {
     private String TAG = "ObjectDetectionClient";
-    private byte[] rawImageBuffer;
-    private Camera.Size rawImageSize;
-    private YuvImage yuvImage;
-    private Rect rect;
-    private ChannelBufferOutputStream stream  = new ChannelBufferOutputStream(MessageBuffers.dynamicBuffer());
-
-    // Message
-    private sensor_msgs.CompressedImage img;
 
     // Object detection client
     private ServiceClient<obj_detectionRequest, obj_detectionResponse> serviceClient;
 
     private ConnectedNode mConnectedNode;
-    private Time time;
     private int sequenceNumber = 0;
+    private Handler handler;
+
+    public ObjectDetectionClient(Handler handler) {
+        this.handler = handler;
+    }
 
     @Override
     public GraphName getDefaultNodeName() {
@@ -55,31 +49,35 @@ public class ObjectDetectionClient extends AbstractNodeMain{
     public void onStart(ConnectedNode connectedNode) {
         super.onStart(connectedNode);
 
+
         try {
             serviceClient = connectedNode.newServiceClient("faster_rcnn", tms_ss_rcnn.obj_detection._TYPE);
         } catch (ServiceNotFoundException e) {
-            Log.i(TAG,"not for ros service");
             throw new RosRuntimeException(e);
         }
 
         mConnectedNode = connectedNode;
     }
 
-    public Mat request(final Mat inputFrame) throws IOException {
-        final tms_ss_rcnn.obj_detectionRequest request = serviceClient.newMessage();
-        time = mConnectedNode.getCurrentTime();
+    private void setCompressedImage(Mat inputFrame, tms_ss_rcnn.obj_detectionRequest request) throws IOException {
+        Time time = mConnectedNode.getCurrentTime();
         request.getImage().getHeader().setStamp(time);
         request.getImage().getHeader().setFrameId("ObjectScouter");
-        request.getImage().getHeader().setSeq(sequenceNumber);
+        request.getImage().getHeader().setSeq(sequenceNumber++);
         request.getImage().setFormat("jpg");
+
         MatOfByte buf = new MatOfByte();
-
         Highgui.imencode(".jpg", inputFrame, buf);
-
         ChannelBufferOutputStream stream = new ChannelBufferOutputStream(MessageBuffers.dynamicBuffer());
         stream.write(buf.toArray());
 
         request.getImage().setData(stream.buffer().copy());
+    }
+
+    public Mat request(final Mat inputFrame) throws IOException {
+        final tms_ss_rcnn.obj_detectionRequest request = serviceClient.newMessage();
+
+        setCompressedImage(inputFrame, request);
 
         serviceClient.call(request, new ServiceResponseListener<obj_detectionResponse>() {
             @Override
@@ -97,7 +95,7 @@ public class ObjectDetectionClient extends AbstractNodeMain{
         return inputFrame;
     }
 
-    public Mat request_test(Mat inputFrame){
+    public Mat request_test(Mat inputFrame) {
         Mat outputFrame = new Mat();
         Core.absdiff(inputFrame, new Scalar(255, 255, 255), outputFrame);
         return outputFrame;
