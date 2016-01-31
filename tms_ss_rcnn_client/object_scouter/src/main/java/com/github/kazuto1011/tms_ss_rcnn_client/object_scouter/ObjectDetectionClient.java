@@ -6,20 +6,24 @@ import android.hardware.Camera;
 import android.util.Log;
 
 import org.jboss.netty.buffer.ChannelBufferOutputStream;
+import org.opencv.core.Core;
+import org.opencv.core.Mat;
+import org.opencv.core.MatOfByte;
+import org.opencv.core.Scalar;
+import org.opencv.highgui.Highgui;
 import org.ros.exception.RemoteException;
 import org.ros.exception.RosRuntimeException;
 import org.ros.exception.ServiceNotFoundException;
 import org.ros.internal.message.MessageBuffers;
 import org.ros.message.Time;
 import org.ros.namespace.GraphName;
-import org.ros.namespace.NameResolver;
 import org.ros.node.AbstractNodeMain;
 import org.ros.node.ConnectedNode;
 import org.ros.node.service.ServiceClient;
 import org.ros.node.service.ServiceResponseListener;
-import org.ros.node.topic.Publisher;
 
-import sensor_msgs.CompressedImage;
+import java.io.IOException;
+
 import tms_ss_rcnn.obj_detectionRequest;
 import tms_ss_rcnn.obj_detectionResponse;
 
@@ -35,12 +39,10 @@ public class ObjectDetectionClient extends AbstractNodeMain{
     // Message
     private sensor_msgs.CompressedImage img;
 
-    // CompressedImage publisher
-    private Publisher<CompressedImage> publisher;
-
     // Object detection client
     private ServiceClient<obj_detectionRequest, obj_detectionResponse> serviceClient;
 
+    private ConnectedNode mConnectedNode;
     private Time time;
     private int sequenceNumber = 0;
 
@@ -50,66 +52,34 @@ public class ObjectDetectionClient extends AbstractNodeMain{
     }
 
     @Override
-    public void onStart(final ConnectedNode connectedNode) {
+    public void onStart(ConnectedNode connectedNode) {
         super.onStart(connectedNode);
 
         try {
             serviceClient = connectedNode.newServiceClient("faster_rcnn", tms_ss_rcnn.obj_detection._TYPE);
         } catch (ServiceNotFoundException e) {
+            Log.i(TAG,"not for ros service");
             throw new RosRuntimeException(e);
         }
 
-        NameResolver resolver = connectedNode.getResolver().newChild("android");
-        publisher = connectedNode.newPublisher(resolver.resolve("camera/compressed"), sensor_msgs.CompressedImage._TYPE);
-
-//        connectedNode.executeCancellableLoop(new CancellableLoop() {
-//            @Override
-//            protected void setup() {
-//                Log.d("rosjava", "setup");
-//                try {
-//                    Thread.sleep(2000);
-//                } catch (InterruptedException e) {
-//                    e.printStackTrace();
-//                }
-//            }
-//
-//            @Override
-//            protected void loop() throws InterruptedException {
-//                if (Preview.yuv_data != null) {
-//                    if (Preview.yuv_data != rawImageBuffer || !Preview.mPreviewSize.equals(rawImageSize)) {
-//                        rawImageBuffer = Preview.yuv_data;
-//                        rawImageSize = Preview.mPreviewSize;
-//                    }
-//
-//                    // new rosjava message
-//                    img = publisher.newMessage();
-//
-//                    // message setting
-//                    time = connectedNode.getCurrentTime();
-//                    img.getHeader().setStamp(time);
-//                    img.getHeader().setFrameId("android");
-//                    img.getHeader().setSeq(sequenceNumber);
-//                    img.setFormat("jpg");
-//
-//                    // make yuv compressed to jpeg
-//                    yuvImage = new YuvImage(rawImageBuffer, ImageFormat.NV21, rawImageSize.width, rawImageSize.height, null);
-//                    rect = new Rect(0, 0, rawImageSize.width, rawImageSize.height);
-//                    Preconditions.checkState(yuvImage.compressToJpeg(rect, 20, stream));
-//                    img.setData(stream.buffer().copy());
-//                    stream.buffer().clear();
-//
-//                    // publish message
-//                    publisher.publish(img);
-//
-//                    sequenceNumber++;
-//                }
-//            }
-//        });
+        mConnectedNode = connectedNode;
     }
 
-    public void request(){
+    public Mat request(final Mat inputFrame) throws IOException {
         final tms_ss_rcnn.obj_detectionRequest request = serviceClient.newMessage();
+        time = mConnectedNode.getCurrentTime();
+        request.getImage().getHeader().setStamp(time);
+        request.getImage().getHeader().setFrameId("ObjectScouter");
+        request.getImage().getHeader().setSeq(sequenceNumber);
+        request.getImage().setFormat("jpg");
+        MatOfByte buf = new MatOfByte();
 
+        Highgui.imencode(".jpg", inputFrame, buf);
+
+        ChannelBufferOutputStream stream = new ChannelBufferOutputStream(MessageBuffers.dynamicBuffer());
+        stream.write(buf.toArray());
+
+        request.getImage().setData(stream.buffer().copy());
 
         serviceClient.call(request, new ServiceResponseListener<obj_detectionResponse>() {
             @Override
@@ -123,5 +93,13 @@ public class ObjectDetectionClient extends AbstractNodeMain{
                 throw new RosRuntimeException(e);
             }
         });
+
+        return inputFrame;
+    }
+
+    public Mat request_test(Mat inputFrame){
+        Mat outputFrame = new Mat();
+        Core.absdiff(inputFrame, new Scalar(255, 255, 255), outputFrame);
+        return outputFrame;
     }
 }
