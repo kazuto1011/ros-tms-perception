@@ -45,12 +45,15 @@ def parse_args():
     parser.add_argument('--net', dest='demo_net',
                         help='Network to use [vgg16]',
                         choices=NETS.keys(), default='vgg16')
+    parser.add_argument('--conf', dest='conf_thresh',
+                        default=0.8, type=float)
+    parser.add_argument('--nms', dest='nms_thresh',
+                        default=0.3, type=float)
     return parser.parse_args()
 
 
-def load_net():
+def load_net(args):
     cfg.TEST.HAS_RPN = True  # Use RPN for proposals
-    args = parse_args()
 
     prototxt = os.path.join(cfg.ROOT_DIR, 'models', NETS[args.demo_net][0], 'faster_rcnn_alt_opt',
                             'faster_rcnn_test.pt')
@@ -67,9 +70,11 @@ def load_net():
 
 
 class FasterRCNN:
-    def __init__(self, name, net):
+    def __init__(self, name, net, conf_thresh, nms_thresh):
         self._net  = net
         self._name = name
+        self.conf_thresh = conf_thresh
+        self.nms_thresh = nms_thresh
         self._warmup()
 
         rp.loginfo("Ready to start")
@@ -100,20 +105,19 @@ class FasterRCNN:
         print ('Detection took {:.3f}s for '
                '{:d} object proposals').format(timer.total_time, boxes.shape[0])
 
-        return self._post_process(scores, boxes, conf_thresh=0.8, nms_thresh=0.3)
+        return self._post_process(scores, boxes)
 
-    @staticmethod
-    def _post_process(scores, boxes, conf_thresh, nms_thresh):
+    def _post_process(self, scores, boxes):
         obj_list = []
         for cls_ind, cls in enumerate(CLASSES[1:]):
             cls_ind += 1  # because we skipped background
             cls_boxes = boxes[:, 4 * cls_ind:4 * (cls_ind + 1)]
             cls_scores = scores[:, cls_ind]
             dets = np.hstack((cls_boxes, cls_scores[:, np.newaxis])).astype(np.float32)
-            keep = nms(dets, nms_thresh)
+            keep = nms(dets, self.nms_thresh)
             dets = dets[keep, :]
 
-            inds = np.where(dets[:, -1] >= conf_thresh)[0]
+            inds = np.where(dets[:, -1] >= self.conf_thresh)[0]
             if len(inds) == 0:
                 continue
 
@@ -139,7 +143,9 @@ class NodeMain:
         rp.init_node('faster_rcnn', anonymous=False)
         rp.on_shutdown(self.shutdown)
 
-        node = FasterRCNN('faster_rcnn', load_net())
+        args = parse_args()
+        node = FasterRCNN('faster_rcnn', load_net(args), conf_thresh=args.conf_thresh, nms_thresh=args.nms_thresh)
+
         rp.spin()
 
     @staticmethod
