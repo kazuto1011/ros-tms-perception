@@ -35,3 +35,6 @@ android {
     }
     sourceSets { main { assets.srcDirs = ['src/main/assets', 'src/main/assets/'] } }
 }
+dependencies {
+    compile 'com.google.android.gms:play-services-appindexing:8.1.0'
+}

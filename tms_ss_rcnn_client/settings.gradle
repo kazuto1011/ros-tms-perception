@@ -20,5 +20,4 @@ include 'my_android_library_project'
 */
 include 'object_scouter'
 include 'image_publisher'
-include 'cv_publisher'
 include ':openCVLibrary2411'

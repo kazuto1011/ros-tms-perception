@@ -11,6 +11,9 @@ import android.view.MenuItem;
 import android.view.SubMenu;
 import android.widget.Toast;
 
+import com.google.android.gms.appindexing.AppIndex;
+import com.google.android.gms.common.api.GoogleApiClient;
+
 import org.opencv.android.BaseLoaderCallback;
 import org.opencv.android.CameraBridgeViewBase;
 import org.opencv.android.LoaderCallbackInterface;
@@ -34,6 +37,11 @@ public class ObjectScouter extends RosActivity implements CameraBridgeViewBase.C
     private ObjectDetectionClient objectDetectionClient;
     private Handler handler;
     private Context context = this;
+    /**
+     * ATTENTION: This was auto-generated to implement the App Indexing API.
+     * See https://g.co/AppIndexing/AndroidStudio for more information.
+     */
+    private GoogleApiClient client;
 
     public ObjectScouter() {
         super("Object Scouter", "Object Scouter");
@@ -83,6 +91,9 @@ public class ObjectScouter extends RosActivity implements CameraBridgeViewBase.C
         };
 
         objectDetectionClient = new ObjectDetectionClient(handler);
+        // ATTENTION: This was auto-generated to implement the App Indexing API.
+        // See https://g.co/AppIndexing/AndroidStudio for more information.
+        client = new GoogleApiClient.Builder(this).addApi(AppIndex.API).build();
     }
 
     @Override
@@ -157,7 +168,8 @@ public class ObjectScouter extends RosActivity implements CameraBridgeViewBase.C
 
     public boolean onOptionsItemSelected(MenuItem item) {
         Log.i(TAG, "called onOptionsItemSelected; selected item: " + item);
-        if (true) {
+        Log.i(TAG, "Item id: " + item.getItemId() + " Group id: " + item.getGroupId());
+        if (item.getGroupId() == 2) {
             int id = item.getItemId();
             Camera.Size resolution = mResolutionList.get(id);
             mCameraView.setResolution(resolution);

@@ -7,6 +7,7 @@ import org.jboss.netty.buffer.ChannelBufferOutputStream;
 import org.opencv.core.Core;
 import org.opencv.core.Mat;
 import org.opencv.core.MatOfByte;
+import org.opencv.core.Point;
 import org.opencv.core.Scalar;
 import org.opencv.highgui.Highgui;
 import org.ros.exception.RemoteException;
@@ -21,9 +22,13 @@ import org.ros.node.service.ServiceClient;
 import org.ros.node.service.ServiceResponseListener;
 
 import java.io.IOException;
+import java.util.List;
 
 import tms_ss_rcnn.obj_detectionRequest;
 import tms_ss_rcnn.obj_detectionResponse;
+import tms_ss_rcnn.object;
+
+import static org.opencv.core.Core.rectangle;
 
 
 public class ObjectDetectionClient extends AbstractNodeMain {
@@ -83,6 +88,14 @@ public class ObjectDetectionClient extends AbstractNodeMain {
             @Override
             public void onSuccess(final obj_detectionResponse response) {
                 Log.i(TAG, "Succeeded to call service");
+                List<object> objects = response.getObjects();
+                for (object obj : objects) {
+                    int tl_x = obj.getRegion().getXOffset();
+                    int tl_y = obj.getRegion().getYOffset();
+                    int br_x = tl_x + obj.getRegion().getWidth();
+                    int br_y = tl_y + obj.getRegion().getHeight();
+                    rectangle(inputFrame, new Point(tl_x, tl_y), new Point(br_x, br_y), new Scalar(255, 0, 0), 1);
+                }
             }
 
             @Override
