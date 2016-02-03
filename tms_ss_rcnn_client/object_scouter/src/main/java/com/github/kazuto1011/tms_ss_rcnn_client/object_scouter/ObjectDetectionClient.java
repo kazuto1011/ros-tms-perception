@@ -28,6 +28,7 @@ import tms_ss_rcnn.obj_detectionRequest;
 import tms_ss_rcnn.obj_detectionResponse;
 import tms_ss_rcnn.object;
 
+import static org.opencv.core.Core.putText;
 import static org.opencv.core.Core.rectangle;
 
 
@@ -95,6 +96,7 @@ public class ObjectDetectionClient extends AbstractNodeMain {
                     int br_x = tl_x + obj.getRegion().getWidth();
                     int br_y = tl_y + obj.getRegion().getHeight();
                     rectangle(inputFrame, new Point(tl_x, tl_y), new Point(br_x, br_y), new Scalar(255, 0, 0), 1);
+                    putText(inputFrame, obj.getClassName(), new Point(tl_x, tl_y - 2), Core.FONT_HERSHEY_COMPLEX, 1.0f, new Scalar(255, 0, 0), 1);
                 }
             }
 
