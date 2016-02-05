@@ -95,8 +95,8 @@ public class ObjectDetectionClient extends AbstractNodeMain {
                     int tl_y = obj.getRegion().getYOffset();
                     int br_x = tl_x + obj.getRegion().getWidth();
                     int br_y = tl_y + obj.getRegion().getHeight();
-                    rectangle(inputFrame, new Point(tl_x, tl_y), new Point(br_x, br_y), new Scalar(255, 0, 0), 1);
-                    putText(inputFrame, obj.getClassName(), new Point(tl_x, tl_y - 2), Core.FONT_HERSHEY_COMPLEX, 1.0f, new Scalar(255, 0, 0), 1);
+                    rectangle(inputFrame, new Point(tl_x, tl_y), new Point(br_x, br_y), new Scalar(255, 0, 0), 2);
+                    putText(inputFrame, obj.getClassName(), new Point(tl_x, tl_y - 2), Core.FONT_HERSHEY_COMPLEX, 1.0f, new Scalar(255, 0, 0), 2);
                 }
             }
 

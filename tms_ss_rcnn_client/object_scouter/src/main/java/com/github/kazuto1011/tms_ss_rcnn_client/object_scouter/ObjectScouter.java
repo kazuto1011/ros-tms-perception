@@ -11,7 +11,6 @@ import android.view.MenuItem;
 import android.view.SubMenu;
 import android.widget.Toast;
 
-import com.google.android.gms.appindexing.AppIndex;
 import com.google.android.gms.common.api.GoogleApiClient;
 
 import org.opencv.android.BaseLoaderCallback;
@@ -91,9 +90,6 @@ public class ObjectScouter extends RosActivity implements CameraBridgeViewBase.C
         };
 
         objectDetectionClient = new ObjectDetectionClient(handler);
-        // ATTENTION: This was auto-generated to implement the App Indexing API.
-        // See https://g.co/AppIndexing/AndroidStudio for more information.
-        client = new GoogleApiClient.Builder(this).addApi(AppIndex.API).build();
     }
 
     @Override
