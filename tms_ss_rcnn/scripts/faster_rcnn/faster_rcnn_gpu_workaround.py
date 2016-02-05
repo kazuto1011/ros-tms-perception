@@ -70,12 +70,13 @@ def load_net(args):
 
 
 class FasterRCNN:
-    def __init__(self, name, net, conf_thresh, nms_thresh):
-        self._net  = net
+    def __init__(self, name, args, conf_thresh, nms_thresh):
+        self._args = args
         self._name = name
+        self._init = False
         self.conf_thresh = conf_thresh
         self.nms_thresh = nms_thresh
-        self._warmup()
+        # self._warmup()
 
         rp.loginfo("Ready to start")
         self._server = rp.Service(self._name, srv.obj_detection, self._callback)
@@ -87,6 +88,17 @@ class FasterRCNN:
 
     def _callback(self, req):
         rp.loginfo("Received an image")
+
+        if self._init is False:
+            self._net = load_net(self._args)
+            self._init = True
+
+        if self._args.cpu_mode:
+            caffe.set_mode_cpu()
+        else:
+            caffe.set_mode_gpu()
+            caffe.set_device(args.gpu_id)
+            cfg.GPU_ID = args.gpu_id
 
         # convert rosmsg to cv image
         np_array = np.fromstring(req.image.data, np.uint8)
@@ -144,7 +156,7 @@ class NodeMain:
         rp.on_shutdown(self.shutdown)
 
         args = parse_args()
-        node = FasterRCNN('faster_rcnn', load_net(args), conf_thresh=args.conf_thresh, nms_thresh=args.nms_thresh)
+        node = FasterRCNN('faster_rcnn', args, conf_thresh=args.conf_thresh, nms_thresh=args.nms_thresh)
 
         rp.spin()
 

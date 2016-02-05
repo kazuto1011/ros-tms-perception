@@ -10,7 +10,7 @@
 * [Chainer](https://github.com/pfnet/chainer)**
 
 ## Usage
-***UNDER DEVELOPMENT. Actually, the followings cannot work together for now.***
+***UNDER DEVELOPMENT***
 ### Android app
 You need to open the project on Android Studio, and install the app to device.  
 Please refer to this. [link](https://github.com/irvs/ros_tms/wiki/how-to-configure-rosjava-apps-with-gradle)
