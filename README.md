@@ -1,29 +1,23 @@
-# cnn-server
-* ROS nodes using convolutional neural network for image classification
+# rcnn-server
+ROS-based client/server nodes to detect multiple objects from an image
+* A server using Convolutional Neural Networks for object detection
 * Android app to stream camera images
 
 ## Prerequisite
-* [Android Studio](http://developer.android.com/sdk/index.html)
 * [ROS (our lab page)](https://github.com/irvs/ros_tms/wiki/install)
-* [Faster R-CNN](https://github.com/rbgirshick/py-faster-rcnn)*
-* [Caffe](https://github.com/BVLC/caffe)**
-* [Chainer](https://github.com/pfnet/chainer)**
+* [Faster R-CNN](https://github.com/rbgirshick/py-faster-rcnn)
 
-## Usage
+## Demo
 ***UNDER DEVELOPMENT***
 ### Android app
-You need to open the project on Android Studio, and install the app to device.  
+You need to open the project on [Android Studio](http://developer.android.com/sdk/index.html), and install the app to device.  
 Please refer to this. [link](https://github.com/irvs/ros_tms/wiki/how-to-configure-rosjava-apps-with-gradle)
 
-### CNN server
-Object detection*
+### Detection server
 ```sh
-$ rosrun tms_ss_rcnn faster_rcnn.py [--cpu]
+$ rosrun tms_ss_rcnn faster_rcnn.py --cpu
 ```
-Image classification**
+or
 ```sh
-$ rosrun tms_ss_rcnn server_caffe.py
-```
-```sh
-$ rosrun tms_ss_rcnn server_chainer.py
+$ rosrun tms_ss_rcnn faster_rcnn_gpu_workaround.py
 ```
