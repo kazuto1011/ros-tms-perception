@@ -55,9 +55,8 @@ def parse_args():
 def load_net(args):
     cfg.TEST.HAS_RPN = True  # Use RPN for proposals
 
-    prototxt = os.path.join(cfg.ROOT_DIR, 'models', NETS[args.demo_net][0], 'faster_rcnn_alt_opt',
-                            'faster_rcnn_test.pt')
-    caffemodel = os.path.join(cfg.ROOT_DIR, 'data', 'faster_rcnn_models', NETS[args.demo_net][1])
+    prototxt = os.path.join(cfg.MODELS_DIR, NETS[args.demo_net][0], 'faster_rcnn_alt_opt', 'faster_rcnn_test.pt')
+    caffemodel = os.path.join(cfg.DATA_DIR, 'faster_rcnn_models', NETS[args.demo_net][1])
 
     if args.cpu_mode:
         caffe.set_mode_cpu()
@@ -76,7 +75,7 @@ class FasterRCNN:
         self._init = False
         self.conf_thresh = conf_thresh
         self.nms_thresh = nms_thresh
-        # self._warmup()
+        self._warmup()
 
         rp.loginfo("Ready to start")
         self._server = rp.Service(self._name, srv.obj_detection, self._callback)
@@ -97,8 +96,8 @@ class FasterRCNN:
             caffe.set_mode_cpu()
         else:
             caffe.set_mode_gpu()
-            caffe.set_device(args.gpu_id)
-            cfg.GPU_ID = args.gpu_id
+            caffe.set_device(self._args.gpu_id)
+            cfg.GPU_ID = self._args.gpu_id
 
         # convert rosmsg to cv image
         np_array = np.fromstring(req.image.data, np.uint8)
