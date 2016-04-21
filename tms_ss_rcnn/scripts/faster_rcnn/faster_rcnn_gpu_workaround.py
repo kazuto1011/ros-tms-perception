@@ -75,7 +75,7 @@ class FasterRCNN:
         self._init = False
         self.conf_thresh = conf_thresh
         self.nms_thresh = nms_thresh
-        self._warmup()
+        # self._warmup()
 
         rp.loginfo("Ready to start")
         self._server = rp.Service(self._name, srv.obj_detection, self._callback)
