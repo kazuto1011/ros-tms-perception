@@ -1,42 +1,36 @@
 #!/usr/bin/env python
+# coding: utf-8
+#
+# Author:   Kazuto Nakashima
+# URL:      https://github.com/kazuto1011
+# Created:  2016-04-21
+
 import sys
 import cv2
-import matplotlib.pyplot as plt
 import numpy as np
 import rospy as rp
-import argparse
 import tms_ss_rcnn.srv
 from sensor_msgs.msg import CompressedImage
-from primesense import openni2
 
 class RCNNClient:
     def __init__(self):
         rp.wait_for_service('faster_rcnn')
 
-        openni2.initialize()
-
-        self.dev = openni2.Device.open_any()
-        print self.dev.get_sensor_info(openni2.SENSOR_COLOR)
-
-        self.color_stream = self.dev.create_color_stream()
+        self.cap = cv2.VideoCapture(0)
 
         try:
             self._client = rp.ServiceProxy('faster_rcnn', tms_ss_rcnn.srv.obj_detection)
         except rp.ServiceException, e:
             print 'Service call failed: %s' % e
 
-        self.color_stream.start()
         self.execute()
 
     def execute(self):
         while not rp.is_shutdown():
-            color_frame = self.color_stream.read_frame()
-            color_data  = color_frame.get_buffer_as_uint8()
-            color_array = np.ndarray((color_frame.height, color_frame.width, 3), dtype=np.uint8, buffer=color_data)
-            color_array = cv2.flip(color_array, 1)
-            req = self._convert2msg(color_array[:,:,::-1])
+            ret, image = self.cap.read()
+            req = self._convert2msg(image)
             res = self._client(req)
-            self._visualize(color_array, res)
+            self._visualize(image, res)
 
     @staticmethod
     def _convert2msg(img):
@@ -54,7 +48,7 @@ class RCNNClient:
             br_y = tl_y + obj.region.height
             cv2.rectangle(img, (tl_x, tl_y), (br_x, br_y), (0, 0, 255), 2)
             cv2.putText(img, obj.class_name, (tl_x, tl_y-2), cv2.FONT_HERSHEY_COMPLEX, 1.0, (0, 0 ,255), 2)
-        
+
         cv2.imshow("color", img);
         cv2.waitKey(30)
 
@@ -65,7 +59,6 @@ def main(args):
     try:
         rp.spin()
     except KeyboardInterrupt:
-        openni2.unload()
         print "Shutting down ROS Image feature detector module"
     cv2.destroyAllWindows()
 
