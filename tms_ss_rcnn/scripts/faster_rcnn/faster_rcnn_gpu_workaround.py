@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 import os
 import sys
+import datetime
 
 if 'FRCN_ROOT' not in os.environ:
     print "Could not find 'FRCN_ROOT'."
@@ -22,6 +23,8 @@ import argparse
 import rospy as rp
 import tms_ss_rcnn.srv as srv
 import tms_ss_rcnn.msg as msg
+import tms_msg_db.msg as dbmsg
+from sensor_msgs.msg import RegionOfInterest
 
 CLASSES = ('__background__',
            'aeroplane', 'bicycle', 'bird', 'boat',
@@ -75,7 +78,7 @@ class FasterRCNN:
         self._init = False
         self.conf_thresh = conf_thresh
         self.nms_thresh = nms_thresh
-        # self._warmup()
+        #self._warmup()
 
         rp.loginfo("Ready to start")
         self._server = rp.Service(self._name, srv.obj_detection, self._callback)
@@ -100,9 +103,9 @@ class FasterRCNN:
             cfg.GPU_ID = self._args.gpu_id
 
         # convert rosmsg to cv image
-        np_array = np.fromstring(req.image.data, np.uint8)
-        image = cv2.imdecode(np_array, cv2.CV_LOAD_IMAGE_COLOR)
-
+        np_array = np.fromstring(req.image.data, np.uint8) 
+        #Had to replace CV_LOAD_IMAGE_COLOR by 1 with OpenCV2.4
+        image = cv2.imdecode(np_array, 1) 
         objects = self._detect(image)
         return srv.obj_detectionResponse(objects)
 
@@ -136,16 +139,27 @@ class FasterRCNN:
                 obj = msg.object()
                 obj.class_name = cls
                 obj.score      = dets[i, -1]
-
                 bbox = dets[i, :4]
                 obj.region.x_offset = bbox[0]
                 obj.region.y_offset = bbox[1]
                 obj.region.width    = bbox[2] - bbox[0]
                 obj.region.height   = bbox[3] - bbox[1]
                 obj.region.do_rectify = False
-
+                #Sending results to TMS Database. 
+                obj_info = dbmsg.TmsdbStamped()
+                obj_info_data = dbmsg.Tmsdb()
+                obj_info.header.frame_id = "frame_id"
+                obj_info.header.seq = 0
+                obj_info_data.id = 7005
+                obj_info_data.type = "object_class"
+                obj_info_data.name = cls
+                obj_info_data.note = str(obj.score)
+                obj_info_data.time = str(datetime.datetime.now())
+                obj_info.tmsdb = [obj_info_data]
+                pub=rp.Publisher('tms_db_data', dbmsg.TmsdbStamped, queue_size=0)
+                pub.publish(obj_info)
+                
                 obj_list.append(obj)
-
         return obj_list
 
 

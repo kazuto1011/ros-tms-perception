@@ -34,6 +34,7 @@ import uk.co.chrisjenx.calligraphy.CalligraphyContextWrapper;
 public class ObjectScouter extends RosActivity implements CameraBridgeViewBase.CvCameraViewListener2 {
     private final String TAG = "ObjectScouter";
     private ObjectDetectionClient objectDetectionClient;
+    private DbReaderClient dbReaderClient;
     private Handler handler;
     private Context context = this;
     /**
@@ -89,7 +90,9 @@ public class ObjectScouter extends RosActivity implements CameraBridgeViewBase.C
             }
         };
 
-        objectDetectionClient = new ObjectDetectionClient(handler);
+        objectDetectionClient = new ObjectDetectionClient(handler, context);
+        dbReaderClient = new DbReaderClient(handler);
+
     }
 
     @Override
@@ -183,6 +186,8 @@ public class ObjectScouter extends RosActivity implements CameraBridgeViewBase.C
         nodeConfiguration.setMasterUri(getMasterUri());
 
         nodeMainExecutor.execute(objectDetectionClient, nodeConfiguration);
+        //nodeMainExecutor.execute(dbReaderClient, nodeConfiguration);
+
 
         //if found faster_rcnn service
         mCameraView.setCvCameraViewListener(this);
