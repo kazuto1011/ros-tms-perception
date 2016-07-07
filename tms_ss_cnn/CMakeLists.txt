@@ -13,6 +13,7 @@ catkin_package(
 #  CATKIN_DEPENDS cv_bridge rospy sensor_msgs
 #  DEPENDS system_lib
 )
-nclude_directories(
+
+include_directories(
   ${catkin_INCLUDE_DIRS}
 )
