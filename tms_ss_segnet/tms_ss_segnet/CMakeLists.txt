@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 2.8.3)
-project(tms_ss_rcnn)
+project(tms_ss_segnet)
 
 find_package(catkin REQUIRED COMPONENTS
   roscpp
@@ -10,14 +10,9 @@ find_package(catkin REQUIRED COMPONENTS
   message_generation
 )
 
-add_message_files(
-  FILES
-  object.msg
-)
-
 add_service_files(
   DIRECTORY srv
-  FILES obj_detection.srv
+  FILES segmentation.srv
 )
 
 generate_messages(
@@ -28,7 +23,7 @@ generate_messages(
 
 catkin_package(
   INCLUDE_DIRS
-  LIBRARIES tms_ss_rcnn
+  LIBRARIES tms_ss_segnet
   CATKIN_DEPENDS roscpp rospy std_msgs message_runtime
   DEPENDS
 )
@@ -36,4 +31,3 @@ catkin_package(
 include_directories(
   ${catkin_INCLUDE_DIRS}
 )
-
