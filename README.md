@@ -23,10 +23,16 @@ tms_ss_rcnn/object[] objects
 Install the app to any Android device and run the server.  
 Please refer to this [link](https://github.com/irvs/ros_tms/wiki/how-to-configure-rosjava-apps-with-gradle) for installation of rosjava apps.
 ```sh
+# Download a trained model
+$ roscd tms_ss_rcnn
+$ cd models
+$ bash fetch_segmentation_models.sh
+```
+```sh
 # Server
-## CPU
+## For CPU
 $ rosrun tms_ss_rcnn faster_rcnn.py --cpu
-## GPU
+## For GPU
 $ rosrun tms_ss_rcnn faster_rcnn_gpu.py
 ```
 
