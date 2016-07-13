@@ -19,3 +19,4 @@ include 'my_android_project'
 include 'my_android_library_project'
 */
 include 'faster_rcnn_client'
+include ':openCVLibrary2411'
