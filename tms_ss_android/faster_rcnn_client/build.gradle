@@ -26,7 +26,7 @@
 
 dependencies {
   compile 'org.ros.android_core:android_10:[0.2,0.3)'
-  compile 'org.ros.android_core:android_15:[0.2,0.3)'
+//  compile 'org.ros.android_core:android_15:[0.2,0.3)'
   compile 'org.ros.rosjava_messages:std_msgs:[0.5,0.6)'
   compile 'org.ros.rosjava_messages:sensor_msgs:[1.11)'
   compile files('../libs/tms_ss_rcnn-0.0.0.jar')
@@ -40,7 +40,7 @@ apply plugin: 'com.android.application'
 android {
   compileSdkVersion 15
   defaultConfig {
-    minSdkVersion 15
+    minSdkVersion 14
     targetSdkVersion 15
     versionCode 1
     versionName "1.0"

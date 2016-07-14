@@ -6,7 +6,7 @@
     android:layout_height="fill_parent"
     android:orientation="vertical">
 
-    <com.github.kazuto1011.tms_perception.tms_ss_android.faster_rcnn_client.VariableJavaCameraView
+    <com.github.kazuto1011.tms_perception.tms_ss_android.faster_rcnn_clinet.VariableJavaCameraView
         android:id="@+id/camera_view"
         android:layout_width="match_parent"
         android:layout_height="match_parent"

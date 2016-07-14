@@ -7,7 +7,7 @@ import android.util.AttributeSet;
 import org.opencv.android.JavaCameraView;
 
 /**
- * Created by common on 16/07/14.
+ * Created by kazuto1011 on 16/07/14.
  */
 import java.util.List;
 

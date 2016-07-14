@@ -31,16 +31,15 @@ import java.util.ListIterator;
 import uk.co.chrisjenx.calligraphy.CalligraphyConfig;
 import uk.co.chrisjenx.calligraphy.CalligraphyContextWrapper;
 
+/**
+ * Created by kazuto1011 on 16/07/14.
+ */
 public class FasterRcnnClient extends RosActivity implements CameraBridgeViewBase.CvCameraViewListener2
 {
     private final String TAG = "FasterRcnnClient";
     private ObjectDetectionClient objectDetectionClient;
     private Handler handler;
     private Context context = this;
-    /**
-     * ATTENTION: This was auto-generated to implement the App Indexing API.
-     * See https://g.co/AppIndexing/AndroidStudio for more information.
-     */
     private GoogleApiClient client;
 
     public FasterRcnnClient() {

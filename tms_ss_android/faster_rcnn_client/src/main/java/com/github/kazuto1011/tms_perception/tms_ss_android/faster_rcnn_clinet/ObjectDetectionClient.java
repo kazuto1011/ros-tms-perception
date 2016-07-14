@@ -33,7 +33,7 @@ import static org.opencv.core.Core.putText;
 import static org.opencv.core.Core.rectangle;
 
 /**
- * Created by common on 16/07/14.
+ * Created by kazuto1011 on 16/07/14.
  */
 public class ObjectDetectionClient extends AbstractNodeMain{
     private String TAG = "ObjectDetectionClient";
@@ -51,7 +51,7 @@ public class ObjectDetectionClient extends AbstractNodeMain{
 
     @Override
     public GraphName getDefaultNodeName() {
-        return GraphName.of("ObjectScouter/ObjectDetectionClient");
+        return GraphName.of("FasterRcnnClient/ObjectDetectionClient");
     }
 
     @Override
@@ -71,7 +71,7 @@ public class ObjectDetectionClient extends AbstractNodeMain{
     private void setCompressedImage(Mat inputFrame, tms_ss_rcnn.obj_detectionRequest request) throws IOException {
         Time time = mConnectedNode.getCurrentTime();
         request.getImage().getHeader().setStamp(time);
-        request.getImage().getHeader().setFrameId("ObjectScouter");
+        request.getImage().getHeader().setFrameId("ObjectDetection");
         request.getImage().getHeader().setSeq(sequenceNumber++);
         request.getImage().setFormat("jpg");
 
