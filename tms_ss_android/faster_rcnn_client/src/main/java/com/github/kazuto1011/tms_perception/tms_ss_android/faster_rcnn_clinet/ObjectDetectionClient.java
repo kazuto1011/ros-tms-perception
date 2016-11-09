@@ -11,6 +11,7 @@ import org.opencv.core.MatOfByte;
 import org.opencv.core.Point;
 import org.opencv.core.Scalar;
 import org.opencv.highgui.Highgui;
+import org.opencv.imgproc.Imgproc;
 import org.ros.exception.RemoteException;
 import org.ros.exception.RosRuntimeException;
 import org.ros.exception.ServiceNotFoundException;
@@ -86,6 +87,7 @@ public class ObjectDetectionClient extends AbstractNodeMain{
     public Mat request(final Mat inputFrame) throws IOException {
         final tms_ss_rcnn.obj_detectionRequest request = serviceClient.newMessage();
 
+        Imgproc.cvtColor(inputFrame, inputFrame, Imgproc.COLOR_RGBA2BGR);
         setCompressedImage(inputFrame, request);
 
         serviceClient.call(request, new ServiceResponseListener<obj_detectionResponse>() {
