@@ -11,6 +11,7 @@ import numpy as np
 import rospy as rp
 import tms_ss_rcnn.srv
 from sensor_msgs.msg import CompressedImage
+import matplotlib.cm as cm
 
 class RCNNClient:
     def __init__(self):
@@ -46,8 +47,9 @@ class RCNNClient:
             tl_y = obj.region.y_offset
             br_x = tl_x + obj.region.width
             br_y = tl_y + obj.region.height
-            cv2.rectangle(img, (tl_x, tl_y), (br_x, br_y), (0, 0, 255), 2)
-            cv2.putText(img, obj.class_name, (tl_x, tl_y-2), cv2.FONT_HERSHEY_COMPLEX, 1.0, (0, 0 ,255), 2)
+            color = np.array(cm.jet_r(obj.score)[0:3])*255
+            cv2.rectangle(img, (tl_x, tl_y), (br_x, br_y), color, 2)
+            cv2.putText(img, obj.class_name, (tl_x, tl_y-2), cv2.FONT_HERSHEY_COMPLEX, 1.0, color, 2)
 
         cv2.imshow("color", img)
         cv2.waitKey(30)

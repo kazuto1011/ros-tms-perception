@@ -55,7 +55,7 @@ def parse_args():
     #                     help='Network to use [vgg16]',
     #                     choices=NETS.keys(), default='vgg16')
     parser.add_argument('--conf', dest='conf_thresh',
-                        default=0.8, type=float)
+                        default=0.6, type=float)
     parser.add_argument('--nms', dest='nms_thresh',
                         default=0.3, type=float)
     return parser.parse_args()
