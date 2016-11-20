@@ -29,6 +29,10 @@ import argparse
 import rospy as rp
 import tms_ss_rcnn.srv as srv
 import tms_ss_rcnn.msg as msg
+import pymongo
+
+db_client = pymongo.MongoClient('localhost', 27017)
+db = db_client.faster_rcnn_experiment
 
 CLASSES = ('__background__',
            'Water bottle',
@@ -116,6 +120,7 @@ class FasterRCNN:
         image = cv2.imdecode(np_array, cv2.CV_LOAD_IMAGE_COLOR)
 
         objects = self._detect(image)
+        rp.loginfo("Send a response")
         return srv.obj_detectionResponse(objects)
 
     def _detect(self, image):
@@ -125,8 +130,8 @@ class FasterRCNN:
         scores, boxes = im_detect(self._net, image)
         timer.toc()
 
-        print ('Detection took {:.3f}s for '
-               '{:d} object proposals').format(timer.total_time, boxes.shape[0])
+        rp.loginfo(('Detection took {:.3f}s for '
+               '{:d} object proposals').format(timer.total_time, boxes.shape[0]))
 
         return self._post_process(scores, boxes, image)
 
@@ -163,6 +168,7 @@ class FasterRCNN:
                 #---------------------------------------------------------------
 
                 obj_list.append(obj)
+                db.test.insert_one({cls: 0.0})
 
         #-Added-----------------------------------------------------------------
         cv2.imshow("server", image)
