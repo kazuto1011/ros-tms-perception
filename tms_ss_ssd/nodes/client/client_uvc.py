@@ -48,7 +48,7 @@ class SSDClient:
             br_x = tl_x + obj.region.width
             br_y = tl_y + obj.region.height
             color = np.array(cm.jet_r(obj.score)[0:3])*255
-            cv2.rectangle(img, (tl_x, tl_y), (br_x, br_y), color, 2)
+            cv2.rectangle(img, (tl_x, tl_y), (br_x, br_y), color, 3)
             cv2.putText(img, obj.class_name, (tl_x, tl_y-2), cv2.FONT_HERSHEY_COMPLEX, 1.0, color, 2)
 
         cv2.imshow("color", img)

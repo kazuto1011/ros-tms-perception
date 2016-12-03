@@ -9,18 +9,19 @@ import sys
 import cv2
 import numpy as np
 import rospy as rp
-import tms_ss_rcnn.srv
+import tms_ss_ssd.srv
 from sensor_msgs.msg import CompressedImage
 import matplotlib.cm as cm
+import skvideo.io as sio
 
-class RCNNClient:
+class SSDClient:
     def __init__(self):
-        rp.wait_for_service('faster_rcnn')
+        rp.wait_for_service('ssd')
 
-        self.cap = cv2.VideoCapture(0)
+        self.cap = sio.VideoCapture('/home/common/Desktop/test.mp4')
 
         try:
-            self._client = rp.ServiceProxy('faster_rcnn', tms_ss_rcnn.srv.obj_detection)
+            self._client = rp.ServiceProxy('ssd', tms_ss_ssd.srv.obj_detection)
         except rp.ServiceException, e:
             print 'Service call failed: %s' % e
 
@@ -52,11 +53,11 @@ class RCNNClient:
             cv2.putText(img, obj.class_name, (tl_x, tl_y-2), cv2.FONT_HERSHEY_COMPLEX, 1.0, color, 2)
 
         cv2.imshow("color", img)
-        cv2.waitKey(30)
+        cv2.waitKey(10)
 
 def main(args):
-    rp.init_node('faster_rcnn_client_xtion', anonymous=True)
-    RCNNClient()
+    rp.init_node('ssd_client_uvc', anonymous=True)
+    SSDClient()
 
     try:
         rp.spin()

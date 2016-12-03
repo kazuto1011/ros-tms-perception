@@ -23,7 +23,7 @@ from google.protobuf import text_format
 from caffe.proto import caffe_pb2
 
 # load PASCAL VOC labels
-labelmap_file = os.path.join(SSD_ROOT, 'data/VOC0712/labelmap_voc.prototxt')
+labelmap_file = os.path.join(SSD_ROOT, 'data/coco/labelmap_coco.prototxt')
 file = open(labelmap_file, 'r')
 labelmap = caffe_pb2.LabelMap()
 text_format.Merge(str(file.read()), labelmap)
@@ -62,8 +62,8 @@ def parse_args():
 
 
 def load_net(args):
-    model_def = os.path.join(SSD_ROOT, 'models/VGGNet/VOC0712/SSD_300x300/deploy.prototxt')
-    model_weights = os.path.join(SSD_ROOT, 'models/VGGNet/VOC0712/SSD_300x300/VGG_VOC0712_SSD_300x300_iter_60000.caffemodel')
+    model_def = os.path.join(SSD_ROOT, 'models/VGGNet/coco/SSD_500x500/deploy.prototxt')
+    model_weights = os.path.join(SSD_ROOT, 'models/VGGNet/coco/SSD_500x500/VGG_coco_SSD_500x500_iter_200000.caffemodel')
 
     return caffe.Net(model_def, model_weights, caffe.TEST)
 
@@ -104,7 +104,7 @@ class SSD:
 
     def _detect(self, image):
         # set net to batch size of 1
-        image_resize = 300
+        image_resize = 500
         self._net.blobs['data'].reshape(1, 3, image_resize, image_resize)
 
         image = np.asarray(image, np.float32)
@@ -134,7 +134,7 @@ class SSD:
         top_xmax = det_xmax[top_indices]
         top_ymax = det_ymax[top_indices]
 
-        colors = plt.cm.hsv(np.linspace(0, 1, 21)).tolist()
+        colors = plt.cm.hsv(np.linspace(0, 1, 81)).tolist()
 
         currentAxis = plt.gca()
 
