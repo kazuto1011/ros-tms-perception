@@ -12,12 +12,13 @@ import rospy as rp
 import tms_ss_rcnn.srv
 from sensor_msgs.msg import CompressedImage
 import matplotlib.cm as cm
+import skvideo.io as sio
 
 class RCNNClient:
     def __init__(self):
         rp.wait_for_service('faster_rcnn')
 
-        self.cap = cv2.VideoCapture(0)
+        self.cap = sio.VideoCapture('/home/common/Desktop/test.mp4')
 
         try:
             self._client = rp.ServiceProxy('faster_rcnn', tms_ss_rcnn.srv.obj_detection)
@@ -31,6 +32,7 @@ class RCNNClient:
             ret, image = self.cap.read()
             req = self._convert2msg(image)
             res = self._client(req)
+            image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
             self._visualize(image, res)
 
     @staticmethod
@@ -48,7 +50,7 @@ class RCNNClient:
             br_x = tl_x + obj.region.width
             br_y = tl_y + obj.region.height
             color = np.array(cm.jet_r(obj.score)[0:3])*255
-            cv2.rectangle(img, (tl_x, tl_y), (br_x, br_y), color, 3)
+            cv2.rectangle(img, (tl_x, tl_y), (br_x, br_y), color, 2)
             cv2.putText(img, obj.class_name, (tl_x, tl_y-2), cv2.FONT_HERSHEY_COMPLEX, 1.0, color, 2)
 
         cv2.imshow("color", img)
